@@ -1,9 +1,4 @@
-class Node:
-    def __init__(self, value):
-        self.value = value
-        self.right = None
-        self.left = None
-        self.height = 1
+from Node import Node
 
 
 def insert(root_node: Node, insertion_node_value):
@@ -56,12 +51,12 @@ def deleteNode(tree_root_node: Node, deletion_node_value):
 
     # one child case
     else:
-        if tree_root_node.left is None:  # when no child in left subtree
+        if not tree_root_node.left:  # when no child in left subtree
             temp = tree_root_node.right  # swap right and current node
             root_node = None
             return temp
 
-        elif tree_root_node.right is None:
+        elif not tree_root_node.right:
             temp = tree_root_node.left
             root_node = None
             return temp
@@ -74,7 +69,7 @@ def deleteNode(tree_root_node: Node, deletion_node_value):
         tree_root_node.right = deleteNode(tree_root_node.right, temp.value)  # delete root node
 
     # after delete we must check if the balance is maintained
-    if tree_root_node is None:
+    if not tree_root_node:
         return tree_root_node
 
     # like case to insert, but
@@ -138,6 +133,12 @@ def leftRotate(node):
     return y
 
 
+def treeMinValue(node):
+    if not node or not node.left:
+        return node
+    return treeMinValue(node.left)
+
+
 def printInorderTreeView(tree_node):
     if tree_node:
         printInorderTreeView(tree_node.left)
@@ -158,45 +159,3 @@ def printPostorderTreeView(tree_node):
         printPostorderTreeView(tree_node.left)
         printPostorderTreeView(tree_node.right)
         print("{0}  ".format(tree_node.value), end=" ")
-
-
-def treeMinValue(node):
-    if node is None or node.left is None:
-        return node
-    return treeMinValue(root_tree_node.left)
-
-
-root_tree_node = None
-
-root_tree_node = insert(root_tree_node, 50)
-root_tree_node = insert(root_tree_node, 40)
-root_tree_node = insert(root_tree_node, 30)
-
-root_tree_node = insert(root_tree_node, 10)
-
-root_tree_node = insert(root_tree_node, 10)
-root_tree_node = insert(root_tree_node, 60)
-root_tree_node = insert(root_tree_node, 70)
-root_tree_node = insert(root_tree_node, 35)
-
-print(" ")
-print("Inorder tree view:")
-printInorderTreeView(root_tree_node)
-print(" ")
-
-print(" ")
-print("Preorder tree view:")
-printPreorderTreeView(root_tree_node)
-print(" ")
-
-print(" ")
-print("Before delete")
-printPostorderTreeView(root_tree_node)
-print(" ")
-
-deleteNode(root_tree_node, 50)
-
-print(" ")
-print("After delete")
-printPostorderTreeView(root_tree_node)
-print(" ")
