@@ -18,9 +18,14 @@ class Node:
 
     @staticmethod
     def get_uncle(node):
-        grandparent_node = Node.get_grandparent(node)
-        if node is not None and grandparent_node is not None:
-            return grandparent_node.right
+        node_grandparent = Node.get_grandparent(node)
+        if not node_grandparent:
+            return None
+        elif Node.get_grandparent(node).right == node.parent:
+            return node_grandparent.left
+        else:
+            return node_grandparent.right
+
 
 
 class NodeColor(Enum):

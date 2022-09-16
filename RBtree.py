@@ -11,7 +11,7 @@ class RBtree:
     # create leaf - NIL node and set root like leaf
     # because when we create tree it should be empty
     def __init__(self):
-        self.LEAF = Node(None)
+        self.LEAF = Node(0)
         self.LEAF.right = None
         self.LEAF.left = None
         self.LEAF.color = NodeColor.BLACK
@@ -43,7 +43,6 @@ class RBtree:
         # fourth step
         node.parent = y
 
-
     def right_rotate(self, node):
         y = node.right
 
@@ -57,7 +56,6 @@ class RBtree:
 
         node.right = y
         y.parent = node
-
 
     # insert node
     def insert(self, insertion_node_value):
@@ -76,7 +74,7 @@ class RBtree:
         # in search of the right place to insert
         while x != self.LEAF:
             y = x
-            if insertion_node.value < insertion_node_value:
+            if insertion_node_value < x.value:
                 x = x.left
             else:
                 x = x.right
@@ -85,9 +83,16 @@ class RBtree:
         # to check if the top of the tree exists
         insertion_node.parent = y
 
+        if y is None:
+            self.root = insertion_node
+        elif insertion_node.value < y.value:
+            y.left = insertion_node
+        else:
+            y.right = insertion_node
+
         # insertion_node like current node or N
         # case 1
-        if insertion_node_value is self.root:
+        if insertion_node is self.root:
             self.insert_case1(insertion_node)
         # case 2
         elif insertion_node.parent.color == NodeColor.BLACK:
@@ -95,7 +100,25 @@ class RBtree:
         # case 3 - insertion_node parent is red
         elif Node.get_uncle(insertion_node).color == NodeColor.RED:
             self.insert_case3(insertion_node)
-        elif insertion_node.parent.right == insertion_node and insertion_node.parent.parent.
+        elif insertion_node.parent.right == insertion_node and Node.get_grandparent(
+                insertion_node).left == insertion_node.parent \
+                or insertion_node.parent.left == insertion_node and Node.get_grandparent(
+            insertion_node).right == insertion_node.parent:
+            self.insert_case4(insertion_node)
+        elif insertion_node.parent == NodeColor.RED and Node.get_grandparent(insertion_node).left == NodeColor.BLACK \
+                and insertion_node.parent.left == insertion_node and Node.get_grandparent(
+            insertion_node).left == insertion_node.parent \
+                or insertion_node.parent == NodeColor.RED and Node.get_grandparent(
+            insertion_node).right == NodeColor.BLACK \
+                and insertion_node.parent.right == insertion_node and Node.get_grandparent(
+            insertion_node).right == insertion_node.parent:
+            self.insert_case5(insertion_node)
+
+    def print_postorder_tree_view(self, node):
+        if node:
+            self.print_postorder_tree_view(node.left)
+            self.print_postorder_tree_view(node.right)
+            print("{0} - {0}".format(node.value, node.value.color), end="  ")
 
     def insert_case1(self, current_node):
         if current_node.parent is None:
@@ -110,7 +133,7 @@ class RBtree:
             self.insert_case3(current_node)
 
     def insert_case3(self, current_node):
-        if Node.get_uncle(current_node) is not None:
+        if Node.get_uncle(current_node) is not self.LEAF:
             current_node.parent.color = NodeColor.BLACK
             Node.get_uncle(current_node).color = NodeColor.BLACK
             Node.get_grandparent(current_node).color = NodeColor.RED
@@ -118,6 +141,20 @@ class RBtree:
         else:
             self.insert_case4(current_node)
 
-    # def insert_case4(self, current_node):
+    def insert_case4(self, current_node):
+        if current_node.parent.right == current_node and Node.get_grandparent(current_node).left == current_node.parent:
+            self.left_rotate(current_node.parent)
+            current_node = current_node.left
+        elif current_node.parent.left == current_node and Node.get_grandparent(
+                current_node).right == current_node.parent:
+            self.right_rotate(current_node.parent)
+            current_node = current_node.right
+        self.insert_case5(current_node)
 
-
+    def insert_case5(self, current_node):
+        if current_node.parent == NodeColor.RED and Node.get_grandparent(current_node).left == NodeColor.BLACK \
+                and current_node.parent.left == current_node \
+                and Node.get_grandparent(current_node).left == current_node.parent:
+            self.right_rotate(Node.get_grandparent(current_node))
+        else:
+            self.left_rotate(Node.get_grandparent(current_node))
