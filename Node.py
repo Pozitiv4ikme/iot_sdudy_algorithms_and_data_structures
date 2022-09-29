@@ -26,6 +26,22 @@ class Node:
         else:
             return node_grandparent.right
 
+    @staticmethod
+    def get_sibling(node):
+        if node.parent.left == node:
+            return node.parent.right
+        else:
+            return node.parent.left
+
+    @staticmethod
+    def replace_child(node, child):
+        # when the node needs to be removed, the children should remain as leaves
+        child.parent = node.parent
+
+        if node == node.parent.left:
+            node.parent.left = child
+        else:
+            node.parent.right = child
 
 
 class NodeColor(Enum):

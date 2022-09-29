@@ -22,43 +22,36 @@ class RBtree:
         y = node.right
 
         # first step
-        node.right = y.left
-        if y.left is not self.LEAF:
-            y.left.parent = node
-
-        # second step
-        if node.parent is None:
-            self.root = y
+        y.parent = node.parent
 
         # find the side of x by his parent and put here y
         # it is like node swap and make y like root
-        elif node.parent.left == node:
+        if node.parent is not self.LEAF:
+            node.parent.right = y
+        else:
+            node.parent.left = y
+
+        # second step
+        node.right = y.left
+
+        # fourth step
+        y.left = node
+
+    def right_rotate(self, node):
+        y = node.left
+
+        y.parent = node.parent
+        if node.parent is not self.LEAF:
             node.parent.left = y
         else:
             node.parent.right = y
 
-        # third step
-        y.left = node
+        node.left = y.right
 
-        # fourth step
-        node.parent = y
-
-    def right_rotate(self, node):
-        y = node.right
-
-        y.left = node.right
-        if node.right is not self.LEAF:
-            node.left.parent = y
-        elif y.parent.left == y:
-            y.parent.left = node
-        else:
-            y.parent.right = node
-
-        node.right = y
-        y.parent = node
+        y.right = node
 
     # insert node
-    def insert(self, insertion_node_value):
+    def insert_node(self, insertion_node_value):
 
         # initialize the node to insert
         insertion_node = Node(insertion_node_value)
@@ -91,34 +84,28 @@ class RBtree:
             y.right = insertion_node
 
         # insertion_node like current node or N
+
         # case 1
         if insertion_node is self.root:
             self.insert_case1(insertion_node)
+
         # case 2
         elif insertion_node.parent.color == NodeColor.BLACK:
             self.insert_case2(insertion_node)
-        # case 3 - insertion_node parent is red
-        elif Node.get_uncle(insertion_node).color == NodeColor.RED:
-            self.insert_case3(insertion_node)
-        elif insertion_node.parent.right == insertion_node and Node.get_grandparent(
-                insertion_node).left == insertion_node.parent \
-                or insertion_node.parent.left == insertion_node and Node.get_grandparent(
-            insertion_node).right == insertion_node.parent:
-            self.insert_case4(insertion_node)
-        elif insertion_node.parent == NodeColor.RED and Node.get_grandparent(insertion_node).left == NodeColor.BLACK \
-                and insertion_node.parent.left == insertion_node and Node.get_grandparent(
-            insertion_node).left == insertion_node.parent \
-                or insertion_node.parent == NodeColor.RED and Node.get_grandparent(
-            insertion_node).right == NodeColor.BLACK \
-                and insertion_node.parent.right == insertion_node and Node.get_grandparent(
-            insertion_node).right == insertion_node.parent:
-            self.insert_case5(insertion_node)
 
-    def print_postorder_tree_view(self, node):
-        if node:
-            self.print_postorder_tree_view(node.left)
-            self.print_postorder_tree_view(node.right)
-            print("{0} - {0}".format(node.value, node.value.color), end="  ")
+        # case 3 - insertion_node parent is red
+        elif Node.get_uncle(insertion_node) is not self.LEAF and Node.get_uncle(insertion_node).color == NodeColor.RED:
+            self.insert_case3(insertion_node)
+
+        # case 4
+        elif (insertion_node.parent.right == insertion_node and Node.get_grandparent(insertion_node).left) == insertion_node.parent\
+                or (insertion_node.parent.left == insertion_node and Node.get_grandparent(insertion_node).right) == insertion_node.parent:
+            self.insert_case4(insertion_node)
+
+        # case 5
+        elif (insertion_node == insertion_node.parent.left and insertion_node.parent == Node.get_grandparent(insertion_node).left and insertion_node.parent.color == NodeColor.RED and Node.get_grandparent(insertion_node).color == NodeColor.BLACK) \
+                or (insertion_node == insertion_node.parent.right and insertion_node.parent == Node.get_grandparent(insertion_node).right and insertion_node.parent.color == NodeColor.RED and Node.get_grandparent(insertion_node).color == NodeColor.BLACK):
+            self.insert_case5(insertion_node)
 
     def insert_case1(self, current_node):
         if current_node.parent is None:
@@ -133,7 +120,7 @@ class RBtree:
             self.insert_case3(current_node)
 
     def insert_case3(self, current_node):
-        if Node.get_uncle(current_node) is not self.LEAF:
+        if Node.get_uncle(current_node).color == NodeColor.RED:
             current_node.parent.color = NodeColor.BLACK
             Node.get_uncle(current_node).color = NodeColor.BLACK
             Node.get_grandparent(current_node).color = NodeColor.RED
@@ -145,16 +132,149 @@ class RBtree:
         if current_node.parent.right == current_node and Node.get_grandparent(current_node).left == current_node.parent:
             self.left_rotate(current_node.parent)
             current_node = current_node.left
-        elif current_node.parent.left == current_node and Node.get_grandparent(
-                current_node).right == current_node.parent:
+
+        elif current_node.parent.left == current_node and Node.get_grandparent(current_node).right == current_node.parent:
             self.right_rotate(current_node.parent)
             current_node = current_node.right
         self.insert_case5(current_node)
 
     def insert_case5(self, current_node):
-        if current_node.parent == NodeColor.RED and Node.get_grandparent(current_node).left == NodeColor.BLACK \
-                and current_node.parent.left == current_node \
-                and Node.get_grandparent(current_node).left == current_node.parent:
+        current_node.parent.color = NodeColor.BLACK
+        Node.get_grandparent(current_node).color = NodeColor.RED
+
+        if current_node == current_node.parent.left and current_node.parent == Node.get_grandparent(current_node).left:
             self.right_rotate(Node.get_grandparent(current_node))
         else:
             self.left_rotate(Node.get_grandparent(current_node))
+
+    def delete_node(self, node_value_to_delete):
+        node_to_delete = self.LEAF
+        tree = self.root
+
+        # traversing the tree to the leaves
+        # in search of the right place to delete
+        while tree is not None:
+            if node_value_to_delete == tree.value:
+                node_to_delete = tree
+
+            if tree.value <= node_value_to_delete:
+                tree = tree.right
+            else:
+                tree = tree.left
+
+        if node_to_delete == self.LEAF:
+            print("Cannot find node with this value in the tree")
+            return
+
+        node_to_delete_brother = Node.get_sibling(node_to_delete)
+
+        # case with one child
+        if node_to_delete.right is self.LEAF or node_to_delete.left is self.LEAF:
+            self.delete_one_child(node_to_delete)
+
+        # case 1
+        if node_to_delete.parent is not None:
+            self.delete_case2(node_to_delete)
+
+        # case 2
+        elif node_to_delete_brother.color == NodeColor.RED:
+            self.delete_case2(node_to_delete)
+
+        # case 3
+        elif node_to_delete_brother.color == NodeColor.BLACK:
+            self.delete_case3(node_to_delete)
+
+        # case 4
+        elif node_to_delete.parent.color == NodeColor.RED and node_to_delete_brother.color == NodeColor.BLACK \
+                and node_to_delete_brother.left.color == NodeColor.BLACK \
+                and node_to_delete_brother.right.color == NodeColor.BLACK:
+            self.delete_case4(node_to_delete)
+
+        # case 5
+        elif node_to_delete_brother.color == NodeColor.BLACK:
+            self.delete_case5(node_to_delete)
+
+        # case 6
+        elif node_to_delete.parent.left == node_to_delete or node_to_delete.parent.right == node_to_delete:
+            self.delete_case6(node_to_delete)
+
+    def delete_one_child(self, node):
+        # find not None child to copy
+        if node.right is self.LEAF:
+            child = node.left
+        else:
+            child = node.right
+        Node.replace_child(node, child)
+        if node.color == NodeColor.BLACK:
+            if child.color == NodeColor.RED:
+                child.color = NodeColor.BLACK
+            else:
+                self.delete_case1(child)
+
+    def delete_case1(self, node_to_delete):
+        if node_to_delete.parent is not None:
+            self.delete_case2(node_to_delete)
+
+    def delete_case2(self, node_to_delete):
+        brother = Node.get_sibling(node_to_delete)
+
+        if brother.color == NodeColor.RED:
+            brother.parent.color = NodeColor.RED
+            brother.color = NodeColor.BLACK
+
+            if node_to_delete == node_to_delete.parent.left:
+                self.left_rotate(node_to_delete.parent)
+            else:
+                self.right_rotate(node_to_delete.parent)
+        else:
+            self.delete_case3(node_to_delete)
+
+    def delete_case3(self, node_to_delete):
+        brother = Node.get_sibling(node_to_delete)
+
+        if node_to_delete.parent.color == NodeColor.BLACK and brother.color == NodeColor.BLACK \
+                and brother.left.color == NodeColor.BLACK and brother.right.color == NodeColor.BLACK:
+            brother.color = NodeColor.RED
+            self.delete_case1(node_to_delete.parent)
+        else:
+            self.delete_case4(node_to_delete)
+
+    def delete_case4(self, node_to_delete):
+        brother = Node.get_sibling(node_to_delete)
+
+        if node_to_delete.parent.color == NodeColor.RED and brother.color == NodeColor.BLACK \
+                and brother.left.color == NodeColor.BLACK and brother.right.color == NodeColor.BLACK:
+            brother.color = NodeColor.RED
+            node_to_delete.parent.color = NodeColor.BLACK
+        else:
+            self.delete_case5(node_to_delete)
+
+    def delete_case5(self, node_to_delete):
+        brother = Node.get_sibling(node_to_delete)
+
+        if brother.color == NodeColor.BLACK:
+            if node_to_delete == node_to_delete.parent.left and brother.right.color == NodeColor.BLACK \
+                    and brother.left.color == NodeColor.RED:
+                brother.color = NodeColor.RED
+                brother.left.color = NodeColor.BLACK
+                self.right_rotate(brother)
+            elif node_to_delete == node_to_delete.parent.right and brother.left.color == NodeColor.BLACK \
+                    and brother.right.color == NodeColor.RED:
+                brother.color = NodeColor.BLACK
+                brother.right.color = NodeColor.RED
+                self.left_rotate(brother)
+        else:
+            self.delete_case6(node_to_delete)
+
+    def delete_case6(self, node_to_delete):
+        brother = Node.get_sibling(node_to_delete)
+
+        brother.color = node_to_delete.parent.color
+        node_to_delete.parent.color = NodeColor.BLACK
+
+        if node_to_delete == node_to_delete.parent.left:
+            brother.right.color = NodeColor.BLACK
+            self.left_rotate(node_to_delete.parent)
+        else:
+            brother.left.color = NodeColor.BLACK
+            self.right_rotate(node_to_delete.parent)
