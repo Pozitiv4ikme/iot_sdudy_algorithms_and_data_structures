@@ -1,7 +1,7 @@
-from collections import deque
+from queue import Queue
 
 
-def bfs(h: int, w: int, x: int, y: int, r_color: str, matrix: list[list[str]]):
+def bfs(h: int, w: int, x: int, y: int, r_color: str, matrix):
 
     # 1 step - check if matrix exist
     if not matrix:
@@ -16,21 +16,30 @@ def bfs(h: int, w: int, x: int, y: int, r_color: str, matrix: list[list[str]]):
         print("You pass the same color to change")
         return
 
-    # 3 step - create queue
-    q = deque()
+    # 4 step - create queue
+    q = Queue()
 
-    # 4 step - append in queue start V
-    q.append(matrix[x][y])
+    # 5 step - append in queue needed V ( his x and y coordinate )
+    q.put([x, y])
 
-    # 5 step - start find all V with same color
-    while len(q) > 0:
-        # pop current V
-        q.pop()
-
-        # take his neighbors on x and y line
+    # 6 step - start find all V with same color
+    while not q.empty():
+        # Dequeue current V and take his neighbors on x and y line
+        x, y = q.get()
 
         # check bounds of field and their color
+        if x < 0 or x >= w or y < 0 or y >= h or matrix[x][y] != old_color:
+            # skip this cases
+            continue
 
-        # if the same - make new color
+        # cases when found required V
+        else:
+            matrix[x][y] = r_color
 
+            # cases on x - top, bottom
+            q.put((x + 1, y))
+            q.put((x - 1, y))
 
+            # and y - top, bottom V
+            q.put((x, y + 1))
+            q.put((x, y - 1))
