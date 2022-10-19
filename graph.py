@@ -10,6 +10,13 @@ class Graph:
         self.clients = {}
         self.routers = []
 
-    def add_edge(self, start, end, weight) -> None:
+    def add_edge(self, start: int, end: int, weight: int) -> None:
+        """
+        add Edge to current Graph
+        :param start: start Vertex of Edge
+        :param end: end Vertex of Edge
+        :param weight: latency of Edge
+        :return None:
+        """
         self.edges.append(Edge(start, end, weight))
         self.edges.append(Edge(end, start, weight))
