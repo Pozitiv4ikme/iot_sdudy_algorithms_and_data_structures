@@ -1,11 +1,12 @@
 import sys
 
+from dijkstra_algorithm import dijkstra
 from file_utils import get_input_info
-from graph import Graph, dijkstra
+from graph import Graph
 from vertex import Vertex, VertexType
 
 
-def main():
+def initialize_graph():
     N, M, clients, paths_with_latency = get_input_info('input.in')
 
     # step 2.1 - check that we get correct info about number of vertexes and edges
@@ -43,7 +44,7 @@ def main():
         if i in clients:
             vertex = Vertex(i, VertexType.CLIENT)
             g.adjacency_list[vertex] = []
-            g.clients.append(vertex)
+            g.clients[vertex.value] = vertex
         # else with type router
         else:
             vertex = Vertex(i, VertexType.ROUTER)
@@ -61,6 +62,45 @@ def main():
     for vertex, neighbour in g.adjacency_list.items():
         print(f"{vertex} has neighbour/-s {neighbour}")
 
+    return g
+
+
+def minimum_value_of_largest_latency_to_client(graph: Graph):
+    """
+    using Dijkstra's algorithm, get latency from each router to all vertexes.
+    next - find the maximum latency between the router and the all clients.
+    if the max latency is minimal, this router can be considered a good position
+    for the server.
+    :param graph: a Graph object
+    """
+
+    # the minimum value of the largest latency to the client at the beginning is equal to infinity (the largest number)
+    minimum_value_of_largest_latency_to_client = sys.maxsize
+
+    print('')
+    for router in graph.routers:
+        # make server vertex
+        server = router
+
+        # find latency for all vertexes
+        latency_from_start = dijkstra(graph, server)
+
+        # latency from router to router is equal to 0
+        longest_router_latency = 0
+
+        for vertex, latency in latency_from_start.items():
+            if vertex.v_type is VertexType.CLIENT and latency > longest_router_latency:
+                longest_router_latency = latency
+        print('End of searching')
+
+        print("Check result of dijkstra's algorithm...\n")
+        if longest_router_latency < minimum_value_of_largest_latency_to_client:
+            minimum_value_of_largest_latency_to_client = longest_router_latency
+
+    print('Find answer')
+    print('The minimum value of the largest latency to client is', minimum_value_of_largest_latency_to_client)
+
 
 if __name__ == '__main__':
-    main()
+    graph = initialize_graph()
+    minimum_value_of_largest_latency_to_client(graph)

@@ -14,7 +14,7 @@ class Edge:
         if type(self) is type(other):
             return (self.from_v is other.from_v
                     and self.to_v is other.to_v
-                    and self.e_weight is other.weight)
+                    and self.e_weight is other.e_weight)
         else:
             return False
 

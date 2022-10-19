@@ -13,14 +13,14 @@ class Vertex:
         self.v_type = v_type
 
     def __str__(self):
-        return f"Vertex - {self.__repr__()}({self.v_type.value})"
+        return f"Vertex - {self.__repr__()}"
 
     def __repr__(self):
-        return f"{self.value}"
+        return f"{self.value} ({self.v_type.value})"
 
     def __eq__(self, other):
         if type(self) is type(other):
-            return self.v_type is other.role and self.value is other.value
+            return self.v_type is other.v_type and self.value is other.value
         else:
             return False
 
