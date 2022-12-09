@@ -26,7 +26,10 @@ def dijkstra(graph: Graph, start_point: Vertex) -> dict:
     # found the shortest way from start to all others vertex
     while unvisited_vertices:
         # from unvisited vertices - choose the one with the shortest path
-        # by min() with param key where we pass iterator and make comparison
+        # by min() with param key (unvisited_vertices return vertex,
+        # pass this vertex like param for lambda,
+        # take value by key from dictionary distance from start,
+        # make comparisons by this value and find min)
         current_vertex = min(unvisited_vertices, key=lambda vertex: distances_from_start[vertex])
 
         # since we visited it, we will note this
